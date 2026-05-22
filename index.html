@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMenu - โปรแกรมวางแผนเมนูอาหารลดน้ำหนักอัจฉริยะ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons for beautiful aesthetics -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Sarabun & Prompt) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Prompt', 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-salad text-2xl text-emerald-200"></i>
+                    <span class="text-xl font-bold tracking-wide">FitMenu <span class="text-xs font-light bg-emerald-700 px-2 py-0.5 rounded-full">v2.0</span></span>
+                </div>
+                <div class="hidden md:flex space-x-4">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-2 rounded-md text-sm font-medium bg-emerald-700 text-white">
+                        <i class="fa-solid fa-chart-line mr-1"></i> แผงควบคุม
+                    </button>
+                    <button onclick="switchTab('planner')" id="nav-planner" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-500 transition-colors">
+                        <i class="fa-solid fa-calendar-week mr-1"></i> เมนู 30 วัน
+                    </button>
+                    <button onclick="switchTab('recipes')" id="nav-recipes" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-500 transition-colors">
+                        <i class="fa-solid fa-book-open-reader mr-1"></i> คลังสูตรอาหาร
+                    </button>
+                    <button onclick="switchTab('grocery')" id="nav-grocery" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-500 transition-colors">
+                        <i class="fa-solid fa-basket-shopping mr-1"></i> รายการของสด
+                    </button>
+                </div>
+                <!-- Profile Indicator -->
+                <div class="flex items-center space-x-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs text-emerald-100">เป้าหมายของคุณ</p>
+                        <p class="text-sm font-semibold" id="header-cal-goal">1,500 kcal / วัน</p>
+                    </div>
+                    <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-emerald-200">
+                        <i class="fa-solid fa-user text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Bottom Navigation Bar -->
+        <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around py-2 text-slate-600 shadow-lg z-50">
+            <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center space-y-1 text-emerald-600">
+                <i class="fa-solid fa-chart-line text-lg"></i>
+                <span class="text-2xs font-medium">ควบคุม</span>
+            </button>
+            <button onclick="switchTab('planner')" id="mob-nav-planner" class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-calendar-week text-lg"></i>
+                <span class="text-2xs font-medium">เมนูอาหาร</span>
+            </button>
+            <button onclick="switchTab('recipes')" id="mob-nav-recipes" class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-book-open-reader text-lg"></i>
+                <span class="text-2xs font-medium">สูตรอาหาร</span>
+            </button>
+            <button onclick="switchTab('grocery')" id="mob-nav-grocery" class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-basket-shopping text-lg"></i>
+                <span class="text-2xs font-medium">ของสด</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-16 md:mb-0">
+        
+        <!-- BANNER/MOTIVATION SECTION -->
+        <div class="mb-8 p-6 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl text-white shadow-md relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
+                <i class="fa-solid fa-apple-whole"></i>
+            </div>
+            <div class="relative z-10">
+                <h1 class="text-2xl sm:text-3xl font-bold mb-2">ออกแบบโปรแกรมสุขภาพเพื่อ "คุณคนใหม่" ใน 30 วัน</h1>
+                <p class="text-emerald-50 opacity-90 text-sm sm:text-base max-w-2xl">
+                    คำนวณค่าพลังงานจำเพาะรายบุคคล เลือกสลับสูตรอาหารคลีนโปรตีนสูงที่คัดสรรมาอย่างดี เพื่อการลดไขมันที่เห็นผลไว สุขภาพไม่พัง และยั่งยืน
+                </p>
+            </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD & CALCULATOR -->
+        <section id="tab-dashboard" class="tab-content space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Side: Interactive Personal Calculator -->
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+                    <h2 class="text-lg font-bold mb-4 flex items-center text-slate-800">
+                        <i class="fa-solid fa-sliders text-emerald-500 mr-2"></i> ข้อมูลและสรีระของคุณ
+                    </h2>
+                    
+                    <form id="calc-form" class="space-y-4" onsubmit="calculateNutrition(event)">
+                        <!-- Gender Selection -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">เพศสภาพ</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="border-2 border-emerald-500 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-center cursor-pointer hover:bg-emerald-50 transition-all text-center" id="gender-male-label">
+                                    <input type="radio" name="gender" value="male" checked class="hidden" onchange="toggleGenderUI('male')">
+                                    <span class="text-sm font-medium text-emerald-700"><i class="fa-solid fa-mars mr-1"></i> ชาย</span>
+                                </label>
+                                <label class="border border-slate-200 rounded-xl p-3 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all text-center" id="gender-female-label">
+                                    <input type="radio" name="gender" value="female" class="hidden" onchange="toggleGenderUI('female')">
+                                    <span class="text-sm font-medium text-slate-600"><i class="fa-solid fa-venus mr-1"></i> หญิง</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Physical Stats Grid -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">อายุ (ปี)</label>
+                                <input type="number" id="input-age" value="28" min="15" max="80" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">ส่วนสูง (ซม.)</label>
+                                <input type="number" id="input-height" value="165" min="100" max="220" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">น้ำหนัก (กก.)</label>
+                                <input type="number" id="input-weight" value="70" min="30" max="200" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            </div>
+                        </div>
+
+                        <!-- Activity Level -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">กิจกรรมการขยับร่างกาย / ออกกำลังกาย</label>
+                            <select id="input-activity" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="1.2">นั่งทำงานอยู่กับที่ แทบไม่ได้ออกกำลังกาย</option>
+                                <option value="1.375" selected>ออกกำลังกายเบา ๆ (1-3 วัน/สัปดาห์)</option>
+                                <option value="1.55">ออกกำลังกายปานกลาง (3-5 วัน/สัปดาห์)</option>
+                                <option value="1.725">ออกกำลังกายหนัก (6-7 วัน/สัปดาห์)</option>
+                            </select>
+                        </div>
+
+                        <!-- Weight Loss Goal Dynamic Selection -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">เป้าหมายระยะสั้น 1 เดือน</label>
+                            <select id="input-goal" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="0.85">ลดน้ำหนักอย่างอ่อนโยน (ลดแคลอรี 15%)</option>
+                                <option value="0.80" selected>ลดน้ำหนักเห็นผลชัดเจน (ลดแคลอรี 20%)</option>
+                                <option value="0.75">ลดน้ำหนักเร่งด่วนแบบปลอดภัย (ลดแคลอรี 25%)</option>
+                            </select>
+                        </div>
+
+                        <!-- NEW: Start Date Selector -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1"><i class="fa-solid fa-calendar-day text-emerald-500 mr-1"></i> วันที่เริ่มต้นโปรแกรม</label>
+                            <input type="date" id="input-start-date" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                        </div>
+
+                        <button type="submit" class="w-full bg-emerald-600 text-white rounded-xl py-3 font-semibold hover:bg-emerald-700 transition-colors shadow-sm flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>วิเคราะห์และคำนวณแผน</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Side: Dynamic Targets Dashboard -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+                        <h2 class="text-lg font-bold mb-4 flex items-center text-slate-800">
+                            <i class="fa-solid fa-bullseye text-emerald-500 mr-2"></i> ผลการคำนวณและโควตาต่อวันของคุณ
+                        </h2>
+                        
+                        <!-- Top KPI Stats Grid -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
+                                <p class="text-xs text-slate-500">พลังงานพื้นฐาน BMR</p>
+                                <p class="text-xl font-bold text-slate-800 mt-1" id="val-bmr">1,410 <span class="text-xs font-normal text-slate-500">kcal</span></p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-xl text-center border border-slate-100">
+                                <p class="text-xs text-slate-500">พลังงานใช้จริง TDEE</p>
+                                <p class="text-xl font-bold text-slate-800 mt-1" id="val-tdee">1,938 <span class="text-xs font-normal text-slate-500">kcal</span></p>
+                            </div>
+                            <div class="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100">
+                                <p class="text-xs text-emerald-600 font-medium">เป้าหมายลดความอ้วน</p>
+                                <p class="text-xl font-extrabold text-emerald-700 mt-1" id="val-target-cal">1,550 <span class="text-xs font-normal">kcal</span></p>
+                            </div>
+                            <div class="bg-amber-50 p-4 rounded-xl text-center border border-amber-100">
+                                <p class="text-xs text-amber-600 font-medium">คาดการณ์ลด 1 เดือน</p>
+                                <p class="text-xl font-extrabold text-amber-700 mt-1" id="val-est-loss">~2.5 - 3 <span class="text-xs font-normal">กก.</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Macro Nutrition Target Bars -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-slate-700">สัดส่วนสารอาหารที่แนะนำต่อวัน (สูตรลดไขมันโปรตีนสูง)</h3>
+                            
+                            <!-- Protein -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-emerald-700"><i class="fa-solid fa-drumstick-bite"></i> โปรตีน (เน้นสร้างกล้ามเนื้อ)</span>
+                                    <span class="font-semibold" id="label-protein">116g (465 kcal / 30%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            <!-- Carbs -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-blue-700"><i class="fa-solid fa-wheat-awn"></i> คาร์โบไฮเดรตเชิงซ้อน (แป้งไม่ขัดสี)</span>
+                                    <span class="font-semibold" id="label-carbs">155g (620 kcal / 40%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                    <div class="bg-blue-500 h-full rounded-full transition-all duration-500" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <!-- Fats -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-amber-700"><i class="fa-solid fa-seedling"></i> ไขมันดี (ช่วยดูแลระบบฮอร์โมน)</span>
+                                    <span class="font-semibold" id="label-fats">51g (465 kcal / 30%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                    <div class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 30%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Water Tracker & Checklist Daily habits -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Water Tracker -->
+                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-800 mb-2 flex items-center">
+                                    <i class="fa-solid fa-droplet text-blue-500 mr-2"></i> บันทึกการดื่มน้ำวันนี้
+                                </h3>
+                                <p class="text-xs text-slate-500 mb-4">การดื่มน้ำให้ถึงช่วยเพิ่มอัตราการเผาผลาญไขมันสะสม</p>
+                                <div class="flex items-center space-x-4 mb-4">
+                                    <span class="text-2xl font-bold text-slate-800" id="water-count">0</span>
+                                    <span class="text-slate-400">/ 8 แก้ว (~2 ลิตร)</span>
+                                </div>
+                                <!-- Water progress representation -->
+                                <div class="flex space-x-1.5 mb-4" id="water-cups-container">
+                                    <!-- Dynamic cup icons -->
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="adjustWater(1)" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold py-2 rounded-xl text-sm transition-all">
+                                    <i class="fa-solid fa-plus mr-1"></i> ดื่ม 1 แก้ว
+                                </button>
+                                <button onclick="resetWater()" class="px-3 py-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 transition-all">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mini Daily Habit Checklist -->
+                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center">
+                                <i class="fa-solid fa-list-check text-emerald-500 mr-2"></i> กิจกรรมลดน้ำหนักวันนี้
+                            </h3>
+                            <p class="text-xs text-slate-500 mb-4">ทำเครื่องหมายเมื่อคุณทำกิจกรรมเหล่านั้นสำเร็จ</p>
+                            <div class="space-y-3">
+                                <label class="flex items-start space-x-3 text-sm cursor-pointer">
+                                    <input type="checkbox" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 mt-0.5">
+                                    <span>ทานผัก/ใยอาหารครบ 3 มื้อ</span>
+                                </label>
+                                <label class="flex items-start space-x-3 text-sm cursor-pointer">
+                                    <input type="checkbox" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 mt-0.5">
+                                    <span>ขยับตัวทำกิจกรรม/เดินให้ครบ 8,000 ก้าว</span>
+                                </label>
+                                <label class="flex items-start space-x-3 text-sm cursor-pointer">
+                                    <input type="checkbox" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 mt-0.5">
+                                    <span>ไม่บริโภคน้ำหวานหรือน้ำอัดลมที่มีน้ำตาล</span>
+                                </label>
+                                <label class="flex items-start space-x-3 text-sm cursor-pointer">
+                                    <input type="checkbox" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 mt-0.5">
+                                    <span>หลับพักผ่อนต่อเนื่องอย่างน้อย 7-8 ชั่วโมง</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: INTERACTIVE 30-DAY MEAL PLANNER -->
+        <section id="tab-planner" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">ตารางออกแบบเมนูรายวัน 4 สัปดาห์</h2>
+                    <p class="text-sm text-slate-500">ระบบจะจำลองเชื่อมโยงวันที่ปฏิทินจริง และกระโดดข้ามไปไฮไลต์เลือกแสดงเมนูของ "วันนี้" ให้อัตโนมัติ</p>
+                </div>
+                
+                <!-- Week Swapping Controls -->
+                <div class="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl p-1.5 shadow-xs self-start">
+                    <button onclick="changeWeek(1)" id="btn-week-1" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition-all">สัปดาห์ที่ 1</button>
+                    <button onclick="changeWeek(2)" id="btn-week-2" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all">สัปดาห์ที่ 2</button>
+                    <button onclick="changeWeek(3)" id="btn-week-3" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all">สัปดาห์ที่ 3</button>
+                    <button onclick="changeWeek(4)" id="btn-week-4" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all">สัปดาห์ที่ 4</button>
+                </div>
+            </div>
+
+            <!-- Main Day View & Details Split Screen -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Day Select Column (7 days with live dates calculated) -->
+                <div class="lg:col-span-4 space-y-3" id="days-sidebar">
+                    <!-- Javascript will inject 7 day-buttons dynamically with real dates -->
+                </div>
+
+                <!-- Daily Detailed Planner Board -->
+                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                        <div>
+                            <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest" id="plan-day-subtitle">DAY 1</span>
+                            <h3 class="text-lg font-bold text-slate-800" id="plan-day-title">เมนูแนะนำ</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-semibold text-slate-500">เป้าหมายสารอาหารวันนี้:</span>
+                            <p class="text-lg font-bold text-emerald-600" id="plan-day-calories">~ 1,500 kcal</p>
+                        </div>
+                    </div>
+
+                    <!-- Breakfast, Lunch, Dinner, Snack Grid -->
+                    <div class="space-y-4">
+                        <!-- Breakfast Box -->
+                        <div class="border border-slate-100 rounded-xl p-4 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-amber-100 text-amber-700 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
+                                    <i class="fa-solid fa-mug-saucer"></i>
+                                </div>
+                                <div>
+                                    <span class="text-2xs font-semibold text-amber-600 tracking-wider">มื้อเช้า (Breakfast)</span>
+                                    <h4 class="font-bold text-slate-800 text-sm sm:text-base" id="meal-bf-title">สลัดทูน่าและไข่ต้ม</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5" id="meal-bf-macros">350 kcal | โปรตีน 25g | คาร์บ 15g | ไขมัน 8g</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 self-end sm:self-center">
+                                <button onclick="viewRecipeByMeal('breakfast')" class="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                                    <i class="fa-solid fa-list-check mr-1"></i> สูตรอาหาร
+                                </button>
+                                <button onclick="swapMeal('breakfast')" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors" title="สลับสับเปลี่ยนเมนูคลีนอื่น">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lunch Box -->
+                        <div class="border border-slate-100 rounded-xl p-4 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-emerald-100 text-emerald-700 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
+                                    <i class="fa-solid fa-utensils"></i>
+                                </div>
+                                <div>
+                                    <span class="text-2xs font-semibold text-emerald-600 tracking-wider">มื้อกลางวัน (Lunch)</span>
+                                    <h4 class="font-bold text-slate-800 text-sm sm:text-base" id="meal-lh-title">อกไก่ผัดขิงน้ำมันสเปรย์</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5" id="meal-lh-macros">450 kcal | โปรตีน 38g | คาร์บ 40g | ไขมัน 7g</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 self-end sm:self-center">
+                                <button onclick="viewRecipeByMeal('lunch')" class="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                                    <i class="fa-solid fa-list-check mr-1"></i> สูตรอาหาร
+                                </button>
+                                <button onclick="swapMeal('lunch')" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors" title="สลับสับเปลี่ยนเมนูคลีนอื่น">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Snacks Box -->
+                        <div class="border border-slate-100 rounded-xl p-4 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-violet-100 text-violet-700 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
+                                    <i class="fa-solid fa-cookie"></i>
+                                </div>
+                                <div>
+                                    <span class="text-2xs font-semibold text-violet-600 tracking-wider">มื้อว่างบ่าย (Snack)</span>
+                                    <h4 class="font-bold text-slate-800 text-sm sm:text-base" id="meal-sn-title">โยเกิร์ตผสมเบอร์รี่</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5" id="meal-sn-macros">180 kcal | โปรตีน 12g | คาร์บ 18g | ไขมัน 2g</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 self-end sm:self-center">
+                                <button onclick="viewRecipeByMeal('snack')" class="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                                    <i class="fa-solid fa-list-check mr-1"></i> สูตรอาหาร
+                                </button>
+                                <button onclick="swapMeal('snack')" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors" title="สลับสับเปลี่ยนเมนูคลีนอื่น">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dinner Box -->
+                        <div class="border border-slate-100 rounded-xl p-4 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
+                                    <i class="fa-solid fa-moon"></i>
+                                </div>
+                                <div>
+                                    <span class="text-2xs font-semibold text-indigo-600 tracking-wider">มื้อเย็น (Dinner)</span>
+                                    <h4 class="font-bold text-slate-800 text-sm sm:text-base" id="meal-dn-title">สเต๊กปลากะพงย่างเกลือพริกไทย</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5" id="meal-dn-macros">320 kcal | โปรตีน 30g | คาร์บ 10g | ไขมัน 6g</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 self-end sm:self-center">
+                                <button onclick="viewRecipeByMeal('dinner')" class="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                                    <i class="fa-solid fa-list-check mr-1"></i> สูตรอาหาร
+                                </button>
+                                <button onclick="swapMeal('dinner')" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors" title="สลับสับเปลี่ยนเมนูคลีนอื่น">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: RECIPES DIRECTORY -->
+        <section id="tab-recipes" class="tab-content hidden space-y-6">
+            <!-- Search & Filter Controls -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-100 shadow-2xs">
+                <div class="relative w-full md:max-w-sm">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="recipe-search" oninput="searchRecipes()" placeholder="ค้นหาสูตรอาหาร (เช่น อกไก่, ทูน่า, แซลมอน)" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="flex space-x-2 overflow-x-auto w-full md:w-auto">
+                    <button onclick="filterRecipes('all')" class="recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white whitespace-nowrap">ทั้งหมด</button>
+                    <button onclick="filterRecipes('breakfast')" class="recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-100 whitespace-nowrap">มื้อเช้า</button>
+                    <button onclick="filterRecipes('lunch')" class="recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-100 whitespace-nowrap">มื้อกลางวัน</button>
+                    <button onclick="filterRecipes('dinner')" class="recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-100 whitespace-nowrap">มื้อเย็น</button>
+                    <button onclick="filterRecipes('snack')" class="recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-100 whitespace-nowrap">มื้อว่าง</button>
+                </div>
+            </div>
+
+            <!-- Recipes Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="recipes-grid">
+                <!-- Javascript will inject recipe cards here dynamically -->
+            </div>
+        </section>
+
+        <!-- TAB 4: AUTOMATED GROCERY LIST -->
+        <section id="tab-grocery" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">รายการซื้อของสดประจำสัปดาห์</h2>
+                        <p class="text-sm text-slate-500">รวมวัตถุดิบและของสดที่จำเป็นต้องซื้อล่วงหน้าอ้างอิงจากเมนูสัปดาห์ปัจจุบัน</p>
+                    </div>
+                    <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-xl text-sm hover:bg-emerald-700 transition-colors flex items-center justify-center space-x-2 self-start">
+                        <i class="fa-solid fa-print"></i>
+                        <span>พิมพ์รายการ</span>
+                    </button>
+                </div>
+
+                <!-- Grocery Sections (Meat, Veggies, Pantry, Carbs) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="grocery-lists-container">
+                    <!-- Meat & Proteins Section -->
+                    <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center border-b border-slate-200 pb-2">
+                            <i class="fa-solid fa-drumstick-bite text-rose-500 mr-2 text-base"></i> เนื้อสัตว์ / โปรตีน
+                        </h3>
+                        <ul class="space-y-2 text-sm text-slate-600" id="grocery-meat">
+                            <!-- JS injected -->
+                        </ul>
+                    </div>
+
+                    <!-- Vegetables & Fruits Section -->
+                    <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center border-b border-slate-200 pb-2">
+                            <i class="fa-solid fa-carrot text-amber-500 mr-2 text-base"></i> ผัก / ผลไม้
+                        </h3>
+                        <ul class="space-y-2 text-sm text-slate-600" id="grocery-veggies">
+                            <!-- JS injected -->
+                        </ul>
+                    </div>
+
+                    <!-- Rice & Complex Carbs Section -->
+                    <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center border-b border-slate-200 pb-2">
+                            <i class="fa-solid fa-wheat-awn text-emerald-500 mr-2 text-base"></i> แป้ง / คาร์บเชิงซ้อน
+                        </h3>
+                        <ul class="space-y-2 text-sm text-slate-600" id="grocery-carbs">
+                            <!-- JS injected -->
+                        </ul>
+                    </div>
+
+                    <!-- Healthy Fats & Seasoning Section -->
+                    <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center border-b border-slate-200 pb-2">
+                            <i class="fa-solid fa-seedling text-teal-500 mr-2 text-base"></i> เครื่องปรุงคลีน / ทั่วไป
+                        </h3>
+                        <ul class="space-y-2 text-sm text-slate-600" id="grocery-pantry">
+                            <!-- JS injected -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- RECIPE MODAL DETAIL DIALOG (Hidden by default) -->
+    <div id="recipe-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl relative">
+            <button onclick="closeRecipeModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="p-6 md:p-8" id="modal-content">
+                <!-- JS will inject complete recipes detail -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MEAL SWAP SELECTION DIALOG (Hidden by default) -->
+    <div id="swap-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto flex flex-col shadow-2xl relative p-6">
+            <button onclick="closeSwapModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">เลือกเมนูอาหารอื่นทดแทน</h3>
+            <p class="text-xs text-slate-500 mb-4">เมนูแนะนำทดแทนทั้งหมดผ่านการคำนวณแคลอรีและสารอาหารในเกณฑ์คลีนโปรตีนสูง</p>
+            <div class="space-y-3" id="swap-options-container">
+                <!-- JS injected options list -->
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+            <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-8 mb-8 gap-6">
+                <div>
+                    <div class="flex items-center justify-center md:justify-start space-x-2 text-white mb-2">
+                        <i class="fa-solid fa-salad text-2xl text-emerald-400"></i>
+                        <span class="text-xl font-bold tracking-wide">FitMenu</span>
+                    </div>
+                    <p class="text-sm text-slate-500 max-w-md">ระบบบริหารโภชนาการสำหรับคนที่ต้องการลดน้ำหนักแบบติดสปีด เห็นผล และถูกต้องตามหลักวิทยาศาสตร์การกีฬาและการโภชนาการ</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors text-slate-300">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors text-slate-300">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors text-slate-300">
+                        <i class="fa-brands fa-tiktok"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between text-xs text-slate-500 gap-4">
+                <p>&copy; 2026 FitMenu Co. สงวนลิขสิทธิ์ตามกฎหมาย. ผลการคำนวณเพื่อใช้เป็นคำแนะนำเบื้องต้นเท่านั้น</p>
+                <div class="flex space-x-4 justify-center">
+                    <a href="#" class="hover:text-emerald-400">นโยบายความเป็นส่วนตัว</a>
+                    <a href="#" class="hover:text-emerald-400">ข้อตกลงการใช้บริการ</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT APP ENGINE -->
+    <script>
+        // --- 1. CORE DATA & DATABASES ---
+        
+        // Detailed Database of Meal Options Categorized
+        const mealDatabase = {
+            breakfast: [
+                { id: "bf_1", title: "สลัดทูน่าในน้ำแร่และไข่ต้ม", cal: 350, protein: 28, carbs: 12, fat: 10, type: "breakfast", ingredients: ["ทูน่าในน้ำแร่ 1 กระป๋อง", "ไข่ต้ม 1 ฟอง", "ผักสลัดไฮโดรโปนิกส์รวม 100 กรัม", "มะเขือเทศราชินี 5 ลูก", "น้ำสลัดงาญี่ปุ่นซีอิ๊วไขมันต่ำ 1 ช้อนโต๊ะ"], instructions: "สะเด็ดน้ำทูน่าออก นำมาคลุกเคล้ากับผักสลัด มะเขือเทศราชินี และไข่ต้มหั่นแว่น ราดน้ำสลัดเบาๆ พร้อมรับประทาน" },
+                { id: "bf_2", title: "กล้วยหอม อะโวคาโด แซนด์วิชโฮลวีต", cal: 340, protein: 12, carbs: 45, fat: 11, type: "breakfast", ingredients: ["ขนมปังโฮลวีต 2 แผ่น", "กล้วยหอมครึ่งลูก", "อะโวคาโดครึ่งลูก (บด)", "ไข่ดาวไร้น้ำมัน 1 ฟอง"], instructions: "ทาอะโวคาโดบดลงบนขนมปัง วางทับด้วยกล้วยหอมหั่นแว่น และไข่ดาวไร้น้ำมัน ประกบอีกแผ่นเป็นแซนด์วิชสุดพรีเมียม" },
+                { id: "bf_3", title: "ข้าวต้มข้าวกล้องอกไก่สับทรงเครื่อง", cal: 320, protein: 30, carbs: 35, fat: 3, type: "breakfast", ingredients: ["ข้าวกล้องหุงสุก 1 ทัพพี", "อกไก่สับละเอียด 120 กรัม", "ต้นหอม ผักชี ขิงซอย", "ซีอิ๊วขาวโซเดียมต่ำ 1 ช้อนโต๊ะ"], instructions: "ต้มน้ำซุปพอเดือด ใส่อกไก่สับลงไป พอสุกใส่ข้าวกล้อง ปรุงรสด้วยซีอิ๊วขาวโซเดียมต่ำ โรยหน้าขิงซอยและต้นหอม" },
+                { id: "bf_4", title: "กรีกโยเกิร์ตหน้าผลไม้ตระกูลเบอร์รี่และแอลมอนด์", cal: 280, protein: 20, carbs: 25, fat: 8, type: "breakfast", ingredients: ["กรีกโยเกิร์ตธรรมชาติไขมัน 0% 1 ถ้วย", "สตรอว์เบอร์รี่ แบล็กเบอร์รี่ 50 กรัม", "ถั่วแอลมอนด์อบธรรมชาติ 10 เม็ด"], instructions: "ตักโยเกิร์ตใส่ถ้วย ตกแต่งหน้าด้วยผลไม้ตระกูลเบอร์รี่สด และถั่วแอลมอนด์ ได้ไขมันดีและจุลินทรีย์มีประโยชน์สูงมาก" },
+                { id: "bf_5", title: "ไข่กวนนมข้นจืดและขนมปังปิ้งไร้เนย", cal: 310, protein: 18, carbs: 28, fat: 9, type: "breakfast", ingredients: ["ไข่ไก่ 2 ฟอง", "นมพร่องมันเนย 2 ช้อนโต๊ะ", "ขนมปังโฮลวีตปิ้ง 1 แผ่น", "ผักโขมสด 50 กรัม"], instructions: "ตีไข่ไก่ผสมนมพร่องมันเนยและผักโขม เทลงกระทะเทฟลอนกวนไฟอ่อนจนเริ่มสุกจับตัว เสิร์ฟพร้อมขนมปังปิ้งอบร้อน" }
+            ],
+            lunch: [
+                { id: "lh_1", title: "อกไก่ผัดขิงสดกับข้าวไรซ์เบอร์รี่", cal: 420, protein: 42, carbs: 40, fat: 6, type: "lunch", ingredients: ["อกไก่ไร้หนังหั่นชิ้น 150 กรัม", "ขิงแก่หั่นเส้น 1 กำมือ", "เห็ดหูหนู 50 กรัม", "ข้าวไรซ์เบอร์รี่หุงสุก 1 ทัพพี", "ซอสหอยนางรมโซเดียมต่ำ 1 ช้อนชา", "สเปรย์น้ำมันมะกอก 1 ครั้ง"], instructions: "ตั้งกระทะฉีดสเปรย์น้ำมันเล็กน้อย นำอกไก่ลงผัดจนสุก ตามด้วยขิงสดและเห็ด ปรุงรสด้วยซอสหอยนางรมและซีอิ๊วขาว คลุกให้เข้ากันเสิร์ฟพร้อมข้าวร้อนๆ" },
+                { id: "lh_2", title: "ข้าวกล้องปลาแซลมอนย่างซีอิ๊วคลีน", cal: 450, protein: 35, carbs: 38, fat: 12, type: "lunch", ingredients: ["เนื้อแซลมอนสด 120 กรัม", "ข้าวกล้องหุงสุก 1 ทัพพี", "ซีอิ๊วขาวญี่ปุ่นโซเดียมต่ำ 1 ช้อนชา", "หน่อไม้ฝรั่ง ยอดมะพร้าว 80 กรัม"], instructions: "จี่แซลมอนบนกระทะเทฟลอนไฟกลางค่อนไปอ่อนจนหนังสุกกรอบและเนื้อเปลี่ยนสี โรยเกลือเล็กน้อย เหยาะซีอิ๊วคลีน ย่างคู่กับหน่อไม้ฝรั่ง" },
+                { id: "lh_3", title: "ก๋วยเตี๋ยวเส้นหมี่ข้าวกล้องอกไก่ฉีกน้ำใส", cal: 360, protein: 32, carbs: 42, fat: 3, type: "lunch", ingredients: ["เส้นหมี่ข้าวกล้องแช่น้ำ 50 กรัม", "อกไก่ต้มฉีกฝอย 120 กรัม", "ถั่วงอกและผักกาดหอมตามชอบ", "พริกไทยดำป่นละเอียด"], instructions: "ต้มน้ำซุปผักสมุนไพร ลวกเส้นหมี่และถั่วงอก ตักใส่ชาม วางอกไก่ฉีก ราดน้ำซุปร้อนๆ โรยหน้าผักชี พริกไทย งดกระเทียมเจียว" },
+                { id: "lh_4", title: "ลาบเนื้ออกไก่สับใส่สมุนไพรข้าวคั่ว", cal: 380, protein: 40, carbs: 35, fat: 4, type: "lunch", ingredients: ["เนื้ออกไก่สับละเอียด 150 กรัม", "ข้าวคั่วบดใหม่ 1 ช้อนชา", "พริกป่น มะนาว น้ำปลาลดโซเดียม", "ใบสะระแหน่ ผักชีฝรั่ง หอมแดง"], instructions: "รวนอกไก่สับในหม้อด้วยน้ำเปล่าพอขลุกขลิกจนสุก ปรุงรสด้วยพริกป่น น้ำปลาโซเดียมต่ำ มะนาวสด ใส่ข้าวคั่ว หอมแดง และใบสมุนไพรเคียง" },
+                { id: "lh_5", title: "ผัดบล็อกโคลี่ใส่กุ้งสดข้าวกล้อง", cal: 400, protein: 30, carbs: 40, fat: 8, type: "lunch", ingredients: ["กุ้งขาวแกะเปลือกผ่าหลัง 100 กรัม", "บล็อกโคลี่หั่นชิ้นเล็ก 150 กรัม", "ข้าวกล้องหุงสุก 1 ทัพพี", "กระเทียมสับ 1 ช้อนชา", "น้ำมันมะกอก 1 ช้อนชา"], instructions: "เจียวกระเทียมกับน้ำมันเล็กน้อย ใส่กุ้งลงไปผัดพอเปลี่ยนสี ใส่บล็อกโคลี่และน้ำซุปเล็กน้อย ปรุงรสน้ำหอยนางรมโซเดียมต่ำเสิร์ฟพร้อมข้าว" }
+            ],
+            dinner: [
+                { id: "dn_1", title: "ปลากะพงอบเต้าเจี้ยวกับผักลวกคู่ใจ", cal: 310, protein: 28, carbs: 15, fat: 5, type: "dinner", ingredients: ["เนื้อปลากะพงสด 150 กรัม", "เต้าเจี้ยวคลีน 1 ช้อนชา", "ขิงอ่อนหั่นแว่น ยอดผักกวางตุ้ง 100 กรัม", "เห็ดเข็มทอง 50 กรัม"], instructions: "นำปลา ขิง เต้าเจี้ยว และเห็ดไปนึ่งรวมกันเป็นเวลา 15 นาที หรือจนสุกดี ลวกกวางตุ้งรองจาน เสิร์ฟร้อนๆ สบายท้อง" },
+                { id: "dn_2", title: "ยำวุ้นเส้นซีฟู้ดต้มยำคลีน", cal: 290, protein: 26, carbs: 30, fat: 3, type: "dinner", ingredients: ["กุ้งและปลาหมึกสดรวม 120 กรัม", "วุ้นเส้นแช่น้ำ 40 กรัม", "พริกขี้หนูสวนบุบ น้ำมะนาวแท้", "มะเขือเทศ หัวหอมใหญ่ คลื่นช่าย"], instructions: "ลวกซีฟู้ดและวุ้นเส้นให้สุกพอดี คลุกเคล้าน้ำยำสูตรเปรี้ยวจี๊ดจ๊าดไม่เน้นน้ำตาล (ใส่สารให้ความหวานทดแทนน้ำตาลเล็กน้อยได้) เสิร์ฟพร้อมผักเคียง" },
+                { id: "dn_3", title: "แกงจืดเต้าหู้หมูบะช่อสับใส่ผักกาดขาว", cal: 260, protein: 22, carbs: 12, fat: 8, type: "dinner", ingredients: ["เนื้อสันในหมูสับ (ไม่ติดมัน) 80 กรัม", "เต้าหู้ไข่หลอด 1 หลอด", "ผักกาดขาว 150 กรัม", "วุ้นเส้น 20 กรัม", "ซีอิ๊วโซเดียมต่ำ"], instructions: "ต้มน้ำต้มเดือด ตักหมูสับเป็นก้อนลงไปต้ม ตามด้วยผักกาดขาว ต้มจนเปื่อยแล้วใส่เต้าหู้หลอดและวุ้นเส้นปิดท้าย ปรุงรสอ่อนๆ" },
+                { id: "dn_4", title: "ลาบทูน่าคลีนไร้น้ำมันพืช", cal: 250, protein: 28, carbs: 10, fat: 4, type: "dinner", ingredients: ["ทูน่าในน้ำแร่ 1 กระป๋อง", "หอมแดงซอย สะระแหน่ ต้นหอม ผักชีฝรั่ง", "ข้าวคั่วพริกป่น มะนาว น้ำปลาต่ำโซเดียม"], instructions: "บีบน้ำแร่ออกจากเนื้อทูน่าให้แห้ง ใส่ถ้วยผสมแล้วเหยาะมะนาว น้ำปลา พริกป่น ข้าวคั่ว และผักสมุนไพรต่างๆ คลุกให้ทั่ว อร่อยลดน้ำหนักเยี่ยม" },
+                { id: "dn_5", title: "ไข่ตุ๋นหน้าทะเลคลีนใส่ต้นหอมญี่ปุ่น", cal: 240, protein: 24, carbs: 6, fat: 7, type: "dinner", ingredients: ["ไข่ไก่สด 2 ฟอง", "เนื้อกุ้งหั่นชิ้นและเนื้อปลา 60 กรัม", "น้ำซุปผัก 1 ถ้วยเล็ก", "ซีอิ๊วขาวและพริกไทยขาวป่น"], instructions: "ตีไข่ไก่กับน้ำซุป ปรุงรสเล็กน้อย เทกรองผ่านกระชอนลงถ้วย นำไปนึ่งไฟอ่อน 10 นาที เปิดโรยหน้าซีฟู้ดแล้วนึ่งต่อจนสุกสมบูรณ์" }
+            ],
+            snack: [
+                { id: "sn_1", title: "ถั่วแอลมอนด์อบธรรมชาติ", cal: 160, protein: 6, carbs: 5, fat: 14, type: "snack", ingredients: ["แอลมอนด์ดิบหรืออบไม่ใส่เกลือ 20-25 เม็ด"], instructions: "หยิบทานระหว่างมื้อบ่าย หรือช่วงที่ต้องการพลังงานฉุกเฉิน เคี้ยวช้าๆ ช่วยให้อิ่มท้องดีเยี่ยมจากไขมันดีและไฟเบอร์" },
+                { id: "sn_2", title: "ฝรั่งกิมจูแสนชื่นใจครึ่งลูก", cal: 60, protein: 1, carbs: 12, fat: 0, type: "snack", ingredients: ["ฝรั่งสดหั่นชิ้น 150 กรัม (ประมาณครึ่งผลใหญ่)"], instructions: "ล้างและปอกหั่นใส่กล่องแช่เย็น ทานแบบสดไม่จิ้มพริกเกลือน้ำตาล จะได้รับวิตามินซีสูงลิ่วและลดความอยากของหวานดีนัก" },
+                { id: "sn_3", title: "ไข่ต้มยางมะตูมพร้อมพริกไทยดำ", cal: 150, protein: 13, carbs: 1, fat: 10, type: "snack", ingredients: ["ไข่ไก่ขนาดกลาง 2 ฟอง", "เหยาะพริกไทยดำป่น"], instructions: "ต้มไข่ในน้ำเดือดจับเวลา 7-8 นาที นำไปแช่น้ำเย็น ปอกเปลือกผ่าซีก โรยพริกไทยดำบดละเอียด อิ่มแน่นสารอาหารทองคำ" },
+                { id: "sn_4", title: "โยเกิร์ตแท้สไตล์บัลแกเรียผสมเมล็ดเจีย", cal: 110, protein: 8, carbs: 10, fat: 2, type: "snack", ingredients: ["โยเกิร์ตรสธรรมชาติปราศจากไขมัน 1 ถ้วย", "เมล็ดเจียแช่น้ำบานแล้ว 1 ช้อนชา"], instructions: "ผสมโยเกิร์ตกับเมล็ดเจีย คลุกเคล้าให้เข้ากัน ทิ้งไว้สักครู่ ช่วยชำระล้างลำไส้และเพิ่มเส้นใยอิ่มยาวนาน" },
+                { id: "sn_5", title: "แอปเปิ้ลเขียวจิ้มเนยถั่วแอลมอนด์ธรรมชาติ", cal: 180, protein: 5, carbs: 20, fat: 9, type: "snack", ingredients: ["แอปเปิ้ลเขียวสด 1 ผล", "เนยถั่วลิสงหรือเนยแอลมอนด์ 100% 1 ช้อนโต๊ะ"], instructions: "ฝานแอปเปิ้ลเป็นชิ้นบาง แล้วนำไปป้ายเนยถั่วทีละนิด รสเปรี้ยวอมขมจากแอปเปิ้ลเจอรสชาติเค็มมันนุ่มนวลจากเนยถั่ว อร่อยดีต่อสุขภาพ" }
+            ]
+        };
+
+        // 30 Days Meal Planner Schedule Matrix (Structured as 4 weeks * 7 days)
+        // Store selected meal IDs for each day. Initially loaded with default values.
+        let userMealPlan = {
+            week1: {
+                day1: { breakfast: "bf_1", lunch: "lh_1", snack: "sn_1", dinner: "dn_1" },
+                day2: { breakfast: "bf_2", lunch: "lh_2", snack: "sn_2", dinner: "dn_2" },
+                day3: { breakfast: "bf_3", lunch: "lh_3", snack: "sn_3", dinner: "dn_3" },
+                day4: { breakfast: "bf_4", lunch: "lh_4", snack: "sn_4", dinner: "dn_4" },
+                day5: { breakfast: "bf_5", lunch: "lh_5", snack: "sn_5", dinner: "dn_5" },
+                day6: { breakfast: "bf_1", lunch: "lh_3", snack: "sn_2", dinner: "dn_3" },
+                day7: { breakfast: "bf_3", lunch: "lh_2", snack: "sn_4", dinner: "dn_1" }
+            },
+            week2: {
+                day1: { breakfast: "bf_3", lunch: "lh_5", snack: "sn_3", dinner: "dn_4" },
+                day2: { breakfast: "bf_4", lunch: "lh_1", snack: "sn_5", dinner: "dn_3" },
+                day3: { breakfast: "bf_1", lunch: "lh_2", snack: "sn_2", dinner: "dn_5" },
+                day4: { breakfast: "bf_5", lunch: "lh_3", snack: "sn_1", dinner: "dn_2" },
+                day5: { breakfast: "bf_2", lunch: "lh_4", snack: "sn_4", dinner: "dn_1" },
+                day6: { breakfast: "bf_4", lunch: "lh_2", snack: "sn_3", dinner: "dn_4" },
+                day7: { breakfast: "bf_2", lunch: "lh_5", snack: "sn_1", dinner: "dn_3" }
+            },
+            week3: {
+                day1: { breakfast: "bf_5", lunch: "lh_2", snack: "sn_2", dinner: "dn_1" },
+                day2: { breakfast: "bf_1", lunch: "lh_4", snack: "sn_4", dinner: "dn_5" },
+                day3: { breakfast: "bf_3", lunch: "lh_1", snack: "sn_1", dinner: "dn_2" },
+                day4: { breakfast: "bf_2", lunch: "lh_5", snack: "sn_5", dinner: "dn_4" },
+                day5: { breakfast: "bf_4", lunch: "lh_3", snack: "sn_3", dinner: "dn_3" },
+                day6: { breakfast: "bf_1", lunch: "lh_5", snack: "sn_5", dinner: "dn_2" },
+                day7: { breakfast: "bf_5", lunch: "lh_1", snack: "sn_2", dinner: "dn_4" }
+            },
+            week4: {
+                day1: { breakfast: "bf_2", lunch: "lh_3", snack: "sn_4", dinner: "dn_5" },
+                day2: { breakfast: "bf_5", lunch: "lh_5", snack: "sn_1", dinner: "dn_2" },
+                day3: { breakfast: "bf_4", lunch: "lh_2", snack: "sn_3", dinner: "dn_1" },
+                day4: { breakfast: "bf_1", lunch: "lh_4", snack: "sn_2", dinner: "dn_3" },
+                day5: { breakfast: "bf_3", lunch: "lh_1", snack: "sn_5", dinner: "dn_4" },
+                day6: { breakfast: "bf_2", lunch: "lh_4", snack: "sn_1", dinner: "dn_5" },
+                day7: { breakfast: "bf_3", lunch: "lh_3", snack: "sn_4", dinner: "dn_2" }
+            }
+        };
+
+        // Day translation mappings
+        const dayNamesTh = {
+            day1: "วันจันทร์",
+            day2: "วันอังคาร",
+            day3: "วันพุธ",
+            day4: "วันพฤหัสบดี",
+            day5: "วันศุกร์",
+            day6: "วันเสาร์",
+            day7: "วันอาทิตย์"
+        };
+
+        // --- 2. STATE VARIABLES ---
+        let currentTab = "dashboard";
+        let activeWeek = "week1";
+        let activeDay = "day1";
+        let userCalorieGoal = 1500;
+        let waterCount = 0;
+        let activeSwapType = ""; // breakfast, lunch, dinner, snack
+        let programStartDate = new Date(); // Stores start date of calendar mapping
+
+        // --- 3. APP INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+
+        function initApp() {
+            // Set Start Date input to today's date automatically
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('input-start-date').value = todayStr;
+            programStartDate = new Date(todayStr);
+            programStartDate.setHours(0,0,0,0);
+
+            // Initial calculations
+            calculateNutrition(null);
+
+            // Auto-select today's exact day in the 30-day loop if applicable
+            autoSelectToday();
+            
+            // Build the Day navigation sidebar
+            renderDaySidebar();
+            
+            // Render the specific meal planner day contents
+            updatePlannerUI();
+            
+            // Render recipes grid in the cookbook tab
+            renderRecipesGrid();
+            
+            // Render automated grocery shopping lists
+            updateGroceryList();
+
+            // Setup custom water UI
+            renderWaterCups();
+        }
+
+        // --- 4. NAVIGATION & TAB SWITCHING ---
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(element => {
+                element.classList.add('hidden');
+            });
+            
+            // Show active tab
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            // Update Navigation active states (Desktop)
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-emerald-700', 'text-white');
+                btn.classList.add('text-slate-200', 'hover:bg-emerald-500');
+            });
+            const activeDesktopBtn = document.getElementById(`nav-${tabId}`);
+            if (activeDesktopBtn) {
+                activeDesktopBtn.classList.add('bg-emerald-700', 'text-white');
+            }
+
+            // Update Navigation active states (Mobile)
+            document.querySelectorAll('[id^="mob-nav-"]').forEach(btn => {
+                btn.classList.remove('text-emerald-600');
+                btn.classList.add('text-slate-600');
+            });
+            const activeMobileBtn = document.getElementById(`mob-nav-${tabId}`);
+            if (activeMobileBtn) {
+                activeMobileBtn.classList.add('text-emerald-600');
+            }
+        }
+
+        // --- 5. BMR, TDEE, & MACRO CALCULATOR ENGINE ---
+        function toggleGenderUI(selected) {
+            const maleLabel = document.getElementById('gender-male-label');
+            const femaleLabel = document.getElementById('gender-female-label');
+            
+            if (selected === 'male') {
+                maleLabel.className = "border-2 border-emerald-500 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-center cursor-pointer hover:bg-emerald-50 transition-all text-center";
+                femaleLabel.className = "border border-slate-200 rounded-xl p-3 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all text-center";
+            } else {
+                femaleLabel.className = "border-2 border-emerald-500 bg-emerald-50/50 rounded-xl p-3 flex items-center justify-center cursor-pointer hover:bg-emerald-50 transition-all text-center";
+                maleLabel.className = "border border-slate-200 rounded-xl p-3 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all text-center";
+            }
+        }
+
+        function calculateNutrition(event) {
+            if (event) event.preventDefault();
+
+            // Retrieve form values
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const age = parseFloat(document.getElementById('input-age').value);
+            const height = parseFloat(document.getElementById('input-height').value);
+            const weight = parseFloat(document.getElementById('input-weight').value);
+            const activity = parseFloat(document.getElementById('input-activity').value);
+            const goalFactor = parseFloat(document.getElementById('input-goal').value);
+
+            // Read the start date of the program
+            const startDateInput = document.getElementById('input-start-date').value;
+            if (startDateInput) {
+                programStartDate = new Date(startDateInput);
+                programStartDate.setHours(0,0,0,0);
+            }
+
+            // BMR calculation using Mifflin-St Jeor Equation
+            let bmr = 0;
+            if (gender === 'male') {
+                bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+            } else {
+                bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            }
+
+            // TDEE calculation
+            const tdee = bmr * activity;
+
+            // Target calories calculation
+            const targetCal = Math.round(tdee * goalFactor);
+            userCalorieGoal = targetCal;
+
+            // Macro nutrient proportions (High Protein Weight Loss Ratio: 30% Protein, 40% Carb, 30% Fat)
+            const proteinGrams = Math.round((targetCal * 0.30) / 4);
+            const carbsGrams = Math.round((targetCal * 0.40) / 4);
+            const fatsGrams = Math.round((targetCal * 0.30) / 9);
+
+            // Calculate estimated weekly/monthly weight loss
+            const deficitDaily = tdee - targetCal;
+            const estLossMonth = ((deficitDaily * 30) / 7700).toFixed(1);
+
+            // Update UI elements
+            document.getElementById('val-bmr').innerHTML = `${Math.round(bmr)} <span class="text-xs font-normal text-slate-500">kcal</span>`;
+            document.getElementById('val-tdee').innerHTML = `${Math.round(tdee)} <span class="text-xs font-normal text-slate-500">kcal</span>`;
+            document.getElementById('val-target-cal').innerHTML = `${targetCal} <span class="text-xs font-normal">kcal</span>`;
+            document.getElementById('val-est-loss').innerHTML = `~${estLossMonth} - ${(parseFloat(estLossMonth) + 1).toFixed(1)} <span class="text-xs font-normal">กก.</span>`;
+            
+            // Header calorie updates
+            document.getElementById('header-cal-goal').textContent = `${targetCal.toLocaleString()} kcal / วัน`;
+
+            // Nutrition Labels
+            document.getElementById('label-protein').textContent = `${proteinGrams}g (${Math.round(targetCal * 0.30)} kcal / 30%)`;
+            document.getElementById('label-carbs').textContent = `${carbsGrams}g (${Math.round(targetCal * 0.40)} kcal / 40%)`;
+            document.getElementById('label-fats').textContent = `${fatsGrams}g (${Math.round(targetCal * 0.30)} kcal / 30%)`;
+
+            // Sync with dynamic planners
+            document.getElementById('plan-day-calories').textContent = `~ ${targetCal.toLocaleString()} kcal`;
+
+            // Sync week calculations & auto selection to prevent mismatch on recalculate
+            autoSelectToday();
+            renderDaySidebar();
+            updatePlannerUI();
+        }
+
+        // --- 6. CALENDAR DATE HELPERS ---
+        function getProgramDate(weekStr, dayStr) {
+            const weekNum = parseInt(weekStr.replace('week', ''));
+            const dayNum = parseInt(dayStr.replace('day', ''));
+            const offset = ((weekNum - 1) * 7) + (dayNum - 1);
+            
+            const targetDate = new Date(programStartDate);
+            targetDate.setDate(targetDate.getDate() + offset);
+            return targetDate;
+        }
+
+        function formatDateThai(date) {
+            const monthsTh = [
+                "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+                "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+            ];
+            const dayName = [
+                "วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"
+            ][date.getDay()];
+            
+            return `${dayName}ที่ ${date.getDate()} ${monthsTh[date.getMonth()]} ${date.getFullYear() + 543}`;
+        }
+
+        function formatDateThaiShort(date) {
+            const monthsTh = [
+                "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+                "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+            ];
+            return `${date.getDate()} ${monthsTh[date.getMonth()]}`;
+        }
+
+        function autoSelectToday() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const start = new Date(programStartDate);
+            start.setHours(0, 0, 0, 0);
+            
+            const diffTime = today - start;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Check if current calendar date falls within the 28-day program
+            if (diffDays >= 0 && diffDays < 28) {
+                const weekNum = Math.floor(diffDays / 7) + 1;
+                const dayNum = (diffDays % 7) + 1;
+                
+                activeWeek = `week${weekNum}`;
+                activeDay = `day${dayNum}`;
+            } else {
+                // Out of bounds defaults to day1 week1
+                activeWeek = "week1";
+                activeDay = "day1";
+            }
+        }
+
+        // --- 7. MEAL PLANNER ENGINE ---
+        function renderDaySidebar() {
+            const container = document.getElementById('days-sidebar');
+            container.innerHTML = "";
+            
+            Object.keys(dayNamesTh).forEach(dayId => {
+                const isActive = (dayId === activeDay);
+                const dayPlan = userMealPlan[activeWeek][dayId];
+                
+                // Calculate total day calories
+                const totalCals = mealDatabase.breakfast.find(m => m.id === dayPlan.breakfast).cal +
+                                  mealDatabase.lunch.find(m => m.id === dayPlan.lunch).cal +
+                                  mealDatabase.snack.find(m => m.id === dayPlan.snack).cal +
+                                  mealDatabase.dinner.find(m => m.id === dayPlan.dinner).cal;
+
+                // Compute exact date for this week and day offset
+                const realDate = getProgramDate(activeWeek, dayId);
+                const isToday = (new Date().toDateString() === realDate.toDateString());
+
+                const dayBtn = document.createElement('button');
+                dayBtn.className = `w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between ${
+                    isActive 
+                    ? 'border-emerald-500 bg-emerald-50/50 shadow-xs' 
+                    : isToday
+                      ? 'border-blue-400 bg-blue-50/30 hover:border-blue-500'
+                      : 'border-slate-100 hover:border-slate-300 bg-white'
+                }`;
+                dayBtn.setAttribute('onclick', `selectDay('${dayId}')`);
+                dayBtn.innerHTML = `
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-2xs font-semibold ${isActive ? 'text-emerald-600' : 'text-slate-400'} uppercase">${dayId.toUpperCase()}</span>
+                            ${isToday ? '<span class="text-3xs bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-bold">วันนี้</span>' : ''}
+                        </div>
+                        <h4 class="font-bold text-sm ${isActive ? 'text-slate-900' : 'text-slate-700'} mt-0.5">
+                            ${dayNamesTh[dayId]} (${formatDateThaiShort(realDate)})
+                        </h4>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs ${isActive ? 'text-emerald-700 bg-emerald-100/50' : 'text-slate-500 bg-slate-50'} px-2 py-1 rounded-md font-bold">${totalCals} kcal</span>
+                    </div>
+                `;
+                container.appendChild(dayBtn);
+            });
+        }
+
+        function selectDay(dayId) {
+            activeDay = dayId;
+            renderDaySidebar();
+            updatePlannerUI();
+        }
+
+        function changeWeek(weekNum) {
+            activeWeek = `week${weekNum}`;
+            
+            // Update Week switcher button styling
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`btn-week-${i}`);
+                if (i === weekNum) {
+                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition-all";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-all";
+                }
+            }
+
+            renderDaySidebar();
+            updatePlannerUI();
+            updateGroceryList();
+        }
+
+        function updatePlannerUI() {
+            const currentPlan = userMealPlan[activeWeek][activeDay];
+            
+            // Get detailed meals from database
+            const bf = mealDatabase.breakfast.find(m => m.id === currentPlan.breakfast);
+            const lh = mealDatabase.lunch.find(m => m.id === currentPlan.lunch);
+            const sn = mealDatabase.snack.find(m => m.id === currentPlan.snack);
+            const dn = mealDatabase.dinner.find(m => m.id === currentPlan.dinner);
+
+            // Compute exact date for the currently selected active planner day
+            const realDate = getProgramDate(activeWeek, activeDay);
+
+            // Update titles and values with real Thai Dates
+            document.getElementById('plan-day-subtitle').textContent = `${activeWeek.toUpperCase()} - ${activeDay.toUpperCase()} (${formatDateThaiShort(realDate)})`;
+            document.getElementById('plan-day-title').textContent = `เมนูอาหารประจำ${formatDateThai(realDate)}`;
+            
+            const totalCals = bf.cal + lh.cal + sn.cal + dn.cal;
+            document.getElementById('plan-day-calories').textContent = `~ ${totalCals} kcal`;
+
+            // Breakfast UI block
+            document.getElementById('meal-bf-title').textContent = bf.title;
+            document.getElementById('meal-bf-macros').textContent = `${bf.cal} kcal | โปรตีน ${bf.protein}g | คาร์บ ${bf.carbs}g | ไขมัน ${bf.fat}g`;
+
+            // Lunch UI block
+            document.getElementById('meal-lh-title').textContent = lh.title;
+            document.getElementById('meal-lh-macros').textContent = `${lh.cal} kcal | โปรตีน ${lh.protein}g | คาร์บ ${lh.carbs}g | ไขมัน ${lh.fat}g`;
+
+            // Snack UI block
+            document.getElementById('meal-sn-title').textContent = sn.title;
+            document.getElementById('meal-sn-macros').textContent = `${sn.cal} kcal | โปรตีน ${sn.protein}g | คาร์บ ${sn.carbs}g | ไขมัน ${sn.fat}g`;
+
+            // Dinner UI block
+            document.getElementById('meal-dn-title').textContent = dn.title;
+            document.getElementById('meal-dn-macros').textContent = `${dn.cal} kcal | โปรตีน ${dn.protein}g | คาร์บ ${dn.carbs}g | ไขมัน ${dn.fat}g`;
+        }
+
+        // --- 8. MEAL SWAP SELECTION DIALOG ENGINE ---
+        function swapMeal(type) {
+            activeSwapType = type;
+            const optionsContainer = document.getElementById('swap-options-container');
+            optionsContainer.innerHTML = "";
+
+            // Get current active meal id for reference
+            const currentMealId = userMealPlan[activeWeek][activeDay][type];
+            
+            // List options from that category
+            const options = mealDatabase[type];
+
+            options.forEach(meal => {
+                const isSelected = (meal.id === currentMealId);
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-4 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
+                    isSelected 
+                    ? 'border-emerald-500 bg-emerald-50/50' 
+                    : 'border-slate-100 hover:border-slate-200 bg-white'
+                }`;
+                itemDiv.setAttribute('onclick', `selectSwappedMeal('${meal.id}')`);
+                itemDiv.innerHTML = `
+                    <div class="flex-1 pr-4">
+                        <h4 class="font-bold text-sm ${isSelected ? 'text-emerald-800' : 'text-slate-800'}">${meal.title}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${meal.cal} kcal | โปรตีน ${meal.protein}g | คาร์บ ${meal.carbs}g | ไขมัน ${meal.fat}g</p>
+                    </div>
+                    <div>
+                        ${isSelected 
+                            ? '<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>' 
+                            : '<i class="fa-regular fa-circle text-slate-300 text-lg"></i>'
+                        }
+                    </div>
+                `;
+                optionsContainer.appendChild(itemDiv);
+            });
+
+            // Open Modal
+            document.getElementById('swap-modal').classList.remove('hidden');
+        }
+
+        function selectSwappedMeal(mealId) {
+            // Update the plan matrix
+            userMealPlan[activeWeek][activeDay][activeSwapType] = mealId;
+            
+            // Close modal & Refresh layouts
+            closeSwapModal();
+            renderDaySidebar();
+            updatePlannerUI();
+            updateGroceryList();
+        }
+
+        function closeSwapModal() {
+            document.getElementById('swap-modal').classList.add('hidden');
+        }
+
+        // --- 9. RECIPES DIRECTORY ENGINE ---
+        function renderRecipesGrid(filteredList = null, category = "all") {
+            const grid = document.getElementById('recipes-grid');
+            grid.innerHTML = "";
+
+            // Gather all foods from databases
+            let allRecipes = [
+                ...mealDatabase.breakfast,
+                ...mealDatabase.lunch,
+                ...mealDatabase.dinner,
+                ...mealDatabase.snack
+            ];
+
+            // If filtered list is passed (search/category)
+            if (filteredList) {
+                allRecipes = filteredList;
+            }
+
+            allRecipes.forEach(recipe => {
+                // Determine icon & background based on type
+                let typeIcon = "fa-utensils";
+                let typeText = "มื้ออาหาร";
+                let typeBg = "bg-slate-100 text-slate-700";
+                
+                if (recipe.type === "breakfast") {
+                    typeIcon = "fa-mug-saucer"; typeText = "มื้อเช้า"; typeBg = "bg-amber-100 text-amber-700";
+                } else if (recipe.type === "lunch") {
+                    typeIcon = "fa-sun"; typeText = "มื้อกลางวัน"; typeBg = "bg-emerald-100 text-emerald-700";
+                } else if (recipe.type === "dinner") {
+                    typeIcon = "fa-moon"; typeText = "มื้อเย็น"; typeBg = "bg-indigo-100 text-indigo-700";
+                } else if (recipe.type === "snack") {
+                    typeIcon = "fa-cookie"; typeText = "มื้อว่าง"; typeBg = "bg-violet-100 text-violet-700";
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-100 p-5 shadow-2xs hover:shadow-xs hover:border-emerald-200 transition-all flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xs font-bold px-2 py-1 rounded-md ${typeBg} flex items-center space-x-1 uppercase">
+                                <i class="fa-solid ${typeIcon}"></i>
+                                <span>${typeText}</span>
+                            </span>
+                            <span class="text-xs font-bold text-emerald-600">${recipe.cal} kcal</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base mb-2 line-clamp-1">${recipe.title}</h3>
+                        <!-- Macros visual meters -->
+                        <div class="grid grid-cols-3 gap-2 py-2 border-y border-slate-50 my-3 text-2xs text-center text-slate-500">
+                            <div>
+                                <span class="block text-slate-400 font-medium">โปรตีน (P)</span>
+                                <span class="font-bold text-slate-800 text-xs">${recipe.protein}g</span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 font-medium">คาร์บ (C)</span>
+                                <span class="font-bold text-slate-800 text-xs">${recipe.carbs}g</span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 font-medium">ไขมัน (F)</span>
+                                <span class="font-bold text-slate-800 text-xs">${recipe.fat}g</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 line-clamp-2 mb-4">วัตถุดิบหลัก: ${recipe.ingredients.slice(0,2).join(', ')}...</p>
+                    </div>
+                    <button onclick="openRecipeModal('${recipe.id}')" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl transition-colors flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span>ดูวิธีปรุงและวัตถุดิบ</span>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterRecipes(category) {
+            // Update filter button styles
+            document.querySelectorAll('.recipe-filter-btn').forEach(btn => {
+                btn.className = "recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-100 whitespace-nowrap";
+            });
+            event.target.className = "recipe-filter-btn px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white whitespace-nowrap";
+
+            if (category === 'all') {
+                renderRecipesGrid();
+                return;
+            }
+
+            const filtered = mealDatabase[category];
+            renderRecipesGrid(filtered, category);
+        }
+
+        function searchRecipes() {
+            const query = document.getElementById('recipe-search').value.toLowerCase().trim();
+            const allRecipes = [
+                ...mealDatabase.breakfast,
+                ...mealDatabase.lunch,
+                ...mealDatabase.dinner,
+                ...mealDatabase.snack
+            ];
+
+            const filtered = allRecipes.filter(recipe => 
+                recipe.title.toLowerCase().includes(query) || 
+                recipe.ingredients.some(ing => ing.toLowerCase().includes(query))
+            );
+
+            renderRecipesGrid(filtered);
+        }
+
+        function viewRecipeByMeal(mealType) {
+            const currentPlan = userMealPlan[activeWeek][activeDay][mealType];
+            openRecipeModal(currentPlan);
+        }
+
+        // --- 10. RECIPE DETAILS MODAL GENERATOR ---
+        function openRecipeModal(recipeId) {
+            const allRecipes = [
+                ...mealDatabase.breakfast,
+                ...mealDatabase.lunch,
+                ...mealDatabase.dinner,
+                ...mealDatabase.snack
+            ];
+            const recipe = allRecipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+
+            const modalContent = document.getElementById('modal-content');
+            
+            // Build ingredients list items
+            const ingredientsLi = recipe.ingredients.map(ing => `
+                <li class="flex items-center space-x-2 py-1.5 border-b border-slate-50">
+                    <i class="fa-regular fa-square-check text-emerald-500"></i>
+                    <span class="text-sm text-slate-600">${ing}</span>
+                </li>
+            `).join('');
+
+            modalContent.innerHTML = `
+                <div class="mb-4">
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">วิธีปรุงอาหารลดน้ำหนัก</span>
+                </div>
+                <h3 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2">${recipe.title}</h3>
+                
+                <!-- Micro Nutrition indicators -->
+                <div class="grid grid-cols-4 gap-3 text-center my-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div>
+                        <span class="text-2xs text-slate-400 block font-medium">พลังงานทั้งหมด</span>
+                        <span class="text-lg font-bold text-slate-800">${recipe.cal} kcal</span>
+                    </div>
+                    <div>
+                        <span class="text-2xs text-emerald-600 block font-medium">โปรตีน (P)</span>
+                        <span class="text-lg font-bold text-emerald-700">${recipe.protein} กรัม</span>
+                    </div>
+                    <div>
+                        <span class="text-2xs text-blue-600 block font-medium">คาร์บ (C)</span>
+                        <span class="text-lg font-bold text-blue-700">${recipe.carbs} กรัม</span>
+                    </div>
+                    <div>
+                        <span class="text-2xs text-amber-600 block font-medium">ไขมัน (F)</span>
+                        <span class="text-lg font-bold text-amber-700">${recipe.fat} กรัม</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Ingredients Left -->
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800 mb-3 flex items-center">
+                            <i class="fa-solid fa-basket-shopping text-emerald-500 mr-2"></i> วัตถุดิบและส่วนผสม
+                        </h4>
+                        <ul class="space-y-1">
+                            ${ingredientsLi}
+                        </ul>
+                    </div>
+
+                    <!-- Instructions Right -->
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800 mb-3 flex items-center">
+                            <i class="fa-solid fa-kitchen-set text-emerald-500 mr-2"></i> ขั้นตอนการปรุงโดยละเอียด
+                        </h4>
+                        <p class="text-sm text-slate-600 leading-relaxed bg-emerald-50/20 p-4 rounded-xl border border-dashed border-emerald-200">
+                            ${recipe.instructions}
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('recipe-modal').classList.remove('hidden');
+        }
+
+        function closeRecipeModal() {
+            document.getElementById('recipe-modal').classList.add('hidden');
+        }
+
+        // --- 11. AUTOMATED WEEKLY GROCERY LIST GENERATOR ---
+        function updateGroceryList() {
+            const listMeat = document.getElementById('grocery-meat');
+            const listVeggies = document.getElementById('grocery-veggies');
+            const listCarbs = document.getElementById('grocery-carbs');
+            const listPantry = document.getElementById('grocery-pantry');
+
+            // Clear old items
+            listMeat.innerHTML = "";
+            listVeggies.innerHTML = "";
+            listCarbs.innerHTML = "";
+            listPantry.innerHTML = "";
+
+            // Collect and sum ingredients from all selected meals in active week
+            let items = { meat: {}, veggies: {}, carbs: {}, pantry: {} };
+
+            // Default Grocery items derived directly from the week meals recipe database
+            const weekMeals = userMealPlan[activeWeek];
+            
+            Object.keys(weekMeals).forEach(day => {
+                const dayPlan = weekMeals[day];
+                const meals = [
+                    mealDatabase.breakfast.find(m => m.id === dayPlan.breakfast),
+                    mealDatabase.lunch.find(m => m.id === dayPlan.lunch),
+                    mealDatabase.snack.find(m => m.id === dayPlan.snack),
+                    mealDatabase.dinner.find(m => m.id === dayPlan.dinner)
+                ];
+
+                meals.forEach(m => {
+                    if (m.id.startsWith("bf")) {
+                        // Classify breakfast ingredients roughly
+                        if (m.id === "bf_1") {
+                            items.meat["ทูน่าในน้ำแร่กระป๋อง"] = (items.meat["ทูน่าในน้ำแร่กระป๋อง"] || 0) + 1;
+                            items.meat["ไข่ไก่สด"] = (items.meat["ไข่ไก่สด"] || 0) + 1;
+                            items.veggies["ผักสลัดไฮโดรโปนิกส์ (แพ็ค)"] = (items.veggies["ผักสลัดไฮโดรโปนิกส์ (แพ็ค)"] || 0) + 0.5;
+                            items.pantry["น้ำสลัดงาไขมันต่ำ"] = "ขวด";
+                        } else if (m.id === "bf_2") {
+                            items.carbs["ขนมปังโฮลวีตแผ่น"] = (items.carbs["ขนมปังโฮลวีตแผ่น"] || 0) + 2;
+                            items.veggies["กล้วยหอม"] = (items.veggies["กล้วยหอม"] || 0) + 0.5;
+                            items.veggies["อะโวคาโด"] = (items.veggies["อะโวคาโด"] || 0) + 0.5;
+                        } else if (m.id === "bf_3") {
+                            items.carbs["ข้าวกล้องดิบ (กก.)"] = (items.carbs["ข้าวกล้องดิบ (กก.)"] || 0) + 0.1;
+                            items.meat["อกไก่บด (กรัม)"] = (items.meat["อกไก่บด (กรัม)"] || 0) + 120;
+                            items.veggies["ขิงแก่และต้นหอม (มัด)"] = "มี";
+                        } else if (m.id === "bf_4") {
+                            items.pantry["กรีกโยเกิร์ตธรรมชาติ"] = (items.pantry["กรีกโยเกิร์ตธรรมชาติ"] || 0) + 1;
+                            items.veggies["ผลไม้รวมตระกูลเบอร์รี่สด"] = "มี";
+                            items.pantry["ถั่วแอลมอนด์ดิบ"] = "มี";
+                        } else {
+                            items.meat["ไข่ไก่สด"] = (items.meat["ไข่ไก่สด"] || 0) + 2;
+                            items.carbs["ขนมปังโฮลวีตแผ่น"] = (items.carbs["ขนมปังโฮลวีตแผ่น"] || 0) + 1;
+                        }
+                    } else if (m.id.startsWith("lh")) {
+                        if (m.id === "lh_1") {
+                            items.meat["อกไก่ชิ้นไร้หนัง (กรัม)"] = (items.meat["อกไก่ชิ้นไร้หนัง (กรัม)"] || 0) + 150;
+                            items.carbs["ข้าวไรซ์เบอร์รี่ดิบ"] = "มี";
+                            items.veggies["เห็ดหูหนู / ขิงสด"] = "มี";
+                        } else if (m.id === "lh_2") {
+                            items.meat["เนื้อแซลมอนสด (กรัม)"] = (items.meat["เนื้อแซลมอนสด (กรัม)"] || 0) + 120;
+                            items.veggies["หน่อไม้ฝรั่งหรือยอดมะพร้าว"] = "มี";
+                        } else if (m.id === "lh_5") {
+                            items.meat["กุ้งขาวแกะเปลือกสด (ตัว)"] = (items.meat["กุ้งขาวแกะเปลือกสด (ตัว)"] || 0) + 6;
+                            items.veggies["บล็อกโคลี่ (หัว)"] = (items.veggies["บล็อกโคลี่ (หัว)"] || 0) + 0.3;
+                        } else {
+                            items.meat["อกไก่สับ/ฉีกไร้หนัง (กรัม)"] = (items.meat["อกไก่สับ/ฉีกไร้หนัง (กรัม)"] || 0) + 130;
+                        }
+                    } else if (m.id.startsWith("dn")) {
+                        if (m.id === "dn_1") {
+                            items.meat["เนื้อปลากะพงสด (กรัม)"] = (items.meat["เนื้อปลากะพงสด (กรัม)"] || 0) + 150;
+                            items.veggies["ยอดผักกวางตุ้ง / เห็ดเข็มทอง"] = "มี";
+                        } else if (m.id === "dn_3") {
+                            items.meat["เนื้อหมูสันในบดละเอียด (กรัม)"] = (items.meat["เนื้อหมูสันในบดละเอียด (กรัม)"] || 0) + 80;
+                            items.meat["เต้าหู้ไข่หลอด"] = (items.meat["เต้าหู้ไข่หลอด"] || 0) + 1;
+                            items.veggies["ผักกาดขาวสไลด์"] = "มี";
+                        } else {
+                            items.meat["กุ้ง/ปลาหมึก/ทูน่า"] = "มี";
+                        }
+                    } else {
+                        items.pantry["อัลมอนด์อบรสธรรมชาติ"] = "มี";
+                    }
+                });
+            });
+
+            // Write Meat Items
+            Object.keys(items.meat).forEach(item => {
+                const qty = items.meat[item];
+                const isNum = typeof qty === 'number';
+                listMeat.appendChild(createGroceryLi(item, isNum ? (qty % 1 === 0 ? qty : qty.toFixed(1)) : ''));
+            });
+            // Fallback for visual list fullness
+            if (listMeat.children.length === 0) {
+                listMeat.appendChild(createGroceryLi("อกไก่สดไร้หนัง", "1.5 กก."));
+                listMeat.appendChild(createGroceryLi("กุ้งขาวแกะเปลือก", "500 กรัม"));
+                listMeat.appendChild(createGroceryLi("ไข่ไก่เบอร์ 2", "1 แผง"));
+                listMeat.appendChild(createGroceryLi("เนื้อปลากะพงสดชิ้น", "800 กรัม"));
+            }
+
+            // Write Vegetables
+            Object.keys(items.veggies).forEach(item => {
+                const qty = items.veggies[item];
+                listVeggies.appendChild(createGroceryLi(item, typeof qty === 'number' ? qty.toFixed(1) : ''));
+            });
+            if (listVeggies.children.length === 0) {
+                listVeggies.appendChild(createGroceryLi("บล็อกโคลี่สด", "3 หัว"));
+                listVeggies.appendChild(createGroceryLi("ผักกาดขาวสด", "1 หัวใหญ่"));
+                listVeggies.appendChild(createGroceryLi("หน่อไม้ฝรั่งอ่อน", "1 แพ็ค"));
+                listVeggies.appendChild(createGroceryLi("ขิงแก่ มะนาวสด", "มี"));
+            }
+
+            // Write Carbs
+            Object.keys(items.carbs).forEach(item => {
+                const qty = items.carbs[item];
+                listCarbs.appendChild(createGroceryLi(item, typeof qty === 'number' ? qty : ''));
+            });
+            if (listCarbs.children.length === 0) {
+                listCarbs.appendChild(createGroceryLi("ข้าวไรซ์เบอร์รี่อินทรีย์", "1 ถุง"));
+                listCarbs.appendChild(createGroceryLi("ข้าวกล้องหอมมะลิไทย", "1 ถุง"));
+                listCarbs.appendChild(createGroceryLi("ขนมปังโฮลวีตไฟเบอร์สูง", "2 แถว"));
+                listCarbs.appendChild(createGroceryLi("วุ้นเส้นเส้นแห้ง", "1 แพ็คเล็ก"));
+            }
+
+            // Write Pantry
+            Object.keys(items.pantry).forEach(item => {
+                const qty = items.pantry[item];
+                listPantry.appendChild(createGroceryLi(item, typeof qty === 'number' ? qty : ''));
+            });
+            if (listPantry.children.length === 0) {
+                listPantry.appendChild(createGroceryLi("กรีกโยเกิร์ตรสธรรมชาติ", "7 ถ้วย"));
+                listPantry.appendChild(createGroceryLi("ซีอิ๊วขาวลดโซเดียม 60%", "1 ขวด"));
+                listPantry.appendChild(createGroceryLi("สเปรย์น้ำมันมะกอกเกรดทำครัว", "1 กระป๋อง"));
+                listPantry.appendChild(createGroceryLi("แอลมอนด์ดิบแพ็คใหญ่", "1 แพ็ค"));
+            }
+        }
+
+        function createGroceryLi(name, qty) {
+            const li = document.createElement('li');
+            li.className = "flex items-start space-x-2 py-1";
+            li.innerHTML = `
+                <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 mt-0.5">
+                <span class="text-sm text-slate-600 flex-grow">${name}</span>
+                ${qty ? `<span class="text-xs bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-semibold">${qty}</span>` : ''}
+            `;
+            return li;
+        }
+
+        // --- 12. WATER LOGS ENGINE ---
+        function renderWaterCups() {
+            const container = document.getElementById('water-cups-container');
+            container.innerHTML = "";
+            for (let i = 1; i <= 8; i++) {
+                const icon = document.createElement('i');
+                if (i <= waterCount) {
+                    icon.className = "fa-solid fa-glass-water text-blue-500 text-lg transition-transform duration-200 scale-110";
+                } else {
+                    icon.className = "fa-light fa-glass text-slate-300 text-lg hover:text-blue-300 cursor-pointer";
+                    icon.setAttribute('onclick', `adjustWater(1)`);
+                }
+                container.appendChild(icon);
+            }
+        }
+
+        function adjustWater(amount) {
+            waterCount = Math.min(8, Math.max(0, waterCount + amount));
+            document.getElementById('water-count').textContent = waterCount;
+            renderWaterCups();
+        }
+
+        function resetWater() {
+            waterCount = 0;
+            document.getElementById('water-count').textContent = "0";
+            renderWaterCups();
+        }
+    </script>
+</body>
+</html>
